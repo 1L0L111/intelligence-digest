@@ -1,93 +1,148 @@
-# template-gitlab-82b4e17c
+# Intelligence Digest Agent
 
-Template for task: GitLab репозиторий
+Рабочий прототип для полуфинала хакатона «ИИ-ассистенты для энергетики». Система получает ИТ/ИБ-публикации, персонализированно ранжирует их, объединяет публикации в события, объясняет отбор и экспортирует дайджест в Markdown/DOCX.
 
-## Getting started
+## Что реализовано
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+- ingestion: RSS и отдельные HTML-страницы (`app/ingestion/connectors.py`);
+- offline demo corpus для гарантированной демонстрации без сети/API;
+- lexical + TF-IDF semantic retrieval;
+- organizer-aware scoring: РФ, энергетика/КИИ/SCADA, exploit/PoC, critical severity;
+- дедупликация и semantic event clustering;
+- два output-contract: **ИБ/ИТ специалист** и **руководитель**;
+- structured extraction: категория, CVE, CVSS, наличие exploit/PoC;
+- executive multi-label tagging по таксономии организаторов;
+- explainability: score + причины отбора + первоисточники;
+- feedback primitive для изменения interest profile;
+- Markdown и DOCX export;
+- Streamlit UI и FastAPI;
+- OpenAI-compatible LLM adapter: модель заменяется конфигурацией без изменения pipeline;
+- golden dataset организаторов: 21 пример (10 technical + 11 executive);
+- evaluation utilities: Precision@K, Recall@K, NDCG@K, duplicate reduction;
+- 7 автоматических тестов.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Быстрый запуск
 
-## Add your files
+Требуется Python 3.11+.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+```bash
+python -m venv .venv
+# Linux/macOS
+source .venv/bin/activate
+# Windows: .venv\\Scripts\\activate
 
+pip install -e ".[dev]"
+pytest -q
+streamlit run frontend/app.py
 ```
-cd existing_repo
-git remote add origin https://git.codenrock.com/codenrock/ii-assistenty/template-gitlab-82b4e17c.git
-git branch -M main
-git push -uf origin main
+
+Откройте `http://localhost:8501`.
+
+API:
+
+```bash
+uvicorn app.api.main:app --host 0.0.0.0 --port 8000
 ```
 
-## Integrate with your tools
+Swagger: `http://localhost:8000/docs`.
 
-- [ ] [Set up project integrations](https://git.codenrock.com/codenrock/ii-assistenty/template-gitlab-82b4e17c/-/settings/integrations)
+## Воспроизводимое demo
 
-## Collaborate with your team
+```bash
+PYTHONPATH=. python scripts/demo.py
+```
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+Создаёт в `artifacts/` Markdown и DOCX для двух персон. На одном наборе входных данных Security Engineer получает CVE/ransomware/Kubernetes, CIO — AI/cloud. Это демонстрирует обязательное требование «изменение подборки при изменении интересов».
 
-## Test and Deploy
+Benchmark:
 
-Use the built-in continuous integration in GitLab.
+```bash
+PYTHONPATH=. python scripts/benchmark.py
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Архитектура
 
-***
+```text
+RSS / HTML / API / frozen corpus
+             |
+             v
+      normalization
+             |
+             v
+ lexical + semantic retrieval
+             |
+             v
+ organizer-aware scoring
+             |
+             v
+ dedup + event clustering
+             |
+        +----+----+
+        |         |
+ technical     executive
+ extraction     tagging
+        |         |
+        +----+----+
+             |
+             v
+ explainable digest -> Markdown / DOCX / API / UI
+```
 
-# Editing this README
+LLM вынесена за интерфейс `app/llm/base.py`. Основной сценарий не зависит от конкретного провайдера. Без API-ключа прототип полностью работает детерминированно; подключение Qwen/gpt-oss/Yandex-compatible модели улучшает summaries/judging, но не является single point of failure.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Данные организаторов
 
-## Suggestions for a good README
+Исходный XLSX сохранён в `data/reference/organizer_examples_v4.0.xlsx`. Нормализованные требования находятся в `app/evaluation/golden_dataset.py`, выводы — `docs/DATASET_FINDINGS.md`.
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Фактические контракты из XLSX:
 
-## Name
-Choose a self-explaining name for your project.
+- technical: `Атака / Уязвимость / Инфо`, приоритет и структурированные признаки;
+- executive: event-centric brief + 12 бизнес-тегов;
+- энергетика/КИИ — сильный сигнал значимости;
+- exploit/PoC повышает приоритет уязвимости;
+- несколько публикаций об одном событии должны объединяться.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+## Структура
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```text
+app/
+  api/              FastAPI
+  ingestion/        RSS/HTML connectors
+  retrieval/        lexical + semantic retrieval
+  intelligence/     scoring, extraction, clustering, feedback
+  digest/           Markdown/DOCX
+  evaluation/       golden set + metrics
+  llm/              replaceable model interface
+frontend/            Streamlit demo
+configs/             profiles/taxonomy
+data/                sample + organizer workbook
+tests/               automated tests
+scripts/             demo + benchmark
+docs/                architecture/team/dataset/submission notes
+artifacts/            generated examples
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Сценарий защиты (3 минуты)
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+1. Показать входной поток и счётчики `публикации -> события`.
+2. Security Engineer: CVE/ransomware/Kubernetes, structured details, score и причины.
+3. Переключить на CIO без изменения corpus: AI/cloud + executive representation.
+4. Открыть источники и explainability.
+5. Скачать DOCX.
+6. На архитектурном слайде подчеркнуть model-agnostic design, event-centric clustering и organizer-aligned evaluation.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## Ограничения прототипа
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+- frozen corpus небольшой и предназначен для стабильного offline demo;
+- rule-based extraction не заменяет полноценный NER/LLM judge на сложных текстах;
+- live HTML зависит от структуры/доступности внешних сайтов;
+- benchmark XLSX содержит примеры результатов, но не полный размеченный отрицательный corpus, поэтому нельзя честно заявлять production-level Recall на всём новостном потоке;
+- перед production нужны persistent storage, scheduler, observability, auth/RBAC, source allowlist и security review.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## Что сдавать
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+1. весь этот репозиторий в выданный GitLab;
+2. `submission/presentation.pdf`;
+3. `artifacts/digest_security_engineer.docx` и `artifacts/digest_cio.docx` как примеры результата;
+4. исходный organizer XLSX уже лежит в `data/reference/`;
+5. README является инструкцией запуска и описанием возможностей/ограничений.

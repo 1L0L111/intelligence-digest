@@ -1,0 +1,8 @@
+[
+ {"id":"1","title":"Critical CVE in Microsoft Exchange allows remote code execution","url":"https://example.org/exchange-cve","source":"Vendor Advisory","text":"A critical CVE affecting Microsoft Exchange may allow remote code execution. Administrators should patch affected systems."},
+ {"id":"2","title":"Researchers report ransomware campaign targeting enterprise infrastructure","url":"https://example.org/ransomware","source":"Security News","text":"A ransomware campaign targets enterprise infrastructure and Windows servers."},
+ {"id":"3","title":"Kubernetes security update fixes authentication vulnerability","url":"https://example.org/k8s","source":"Kubernetes Blog","text":"Kubernetes maintainers released a security update fixing a vulnerability in authentication components."},
+ {"id":"4","title":"Enterprise AI adoption accelerates in regulated industries","url":"https://example.org/enterprise-ai","source":"Tech Research","text":"AI and LLM adoption grows as enterprises establish governance and regulation controls."},
+ {"id":"5","title":"Cloud transformation changes enterprise operating models","url":"https://example.org/cloud","source":"IT Strategy","text":"Cloud platforms and digital transformation are changing enterprise operating models."},
+ {"id":"6","title":"New consumer smartphone camera announced","url":"https://example.org/phone","source":"Consumer Tech","text":"A new smartphone adds a larger camera sensor."}
+]
