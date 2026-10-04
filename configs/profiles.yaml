@@ -1,0 +1,6 @@
+security_engineer:
+  interests: [CVE, Microsoft, Kubernetes, ransomware]
+  exclusions: [smartphone, gaming]
+cio:
+  interests: [AI, cloud, regulation, digital transformation]
+  exclusions: [consumer devices]

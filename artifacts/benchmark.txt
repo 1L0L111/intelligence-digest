@@ -1,0 +1,3 @@
+Golden examples: 21 (technical=10, executive=11)
+Executive tagger title-only lower bound: precision=0.700 recall=0.194 f1=0.304
+Pipeline tests and organizer-aligned rules are the primary reproducible offline evaluation in semifinal package.
