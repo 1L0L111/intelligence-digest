@@ -146,3 +146,24 @@ artifacts/            generated examples
 3. `artifacts/digest_security_engineer.docx` и `artifacts/digest_cio.docx` как примеры результата;
 4. исходный organizer XLSX уже лежит в `data/reference/`;
 5. README является инструкцией запуска и описанием возможностей/ограничений.
+
+## Быстрый запуск демо (Windows / Python 3.11+)
+
+Если нужен только интерфейс прототипа без API и внешней LLM:
+
+```bash
+python -m pip install -r requirements-demo.txt
+python -m streamlit run frontend/app.py
+```
+
+При первом запуске Streamlit может запросить email — оставьте поле пустым и нажмите Enter.
+Откройте `http://localhost:8501`.
+
+### Сценарий демонстрации для жюри
+
+1. Выберите **ИБ / ИТ специалист**: CVE, Microsoft, Kubernetes, ransomware — в топе окажутся технические ИБ-события.
+2. Переключитесь на **Руководитель**: AI, cloud, regulation, digital transformation — состав и приоритеты дайджеста изменятся.
+3. Покажите объяснение «Почему важно», сигналы отбора и ссылки на первоисточники.
+4. Скачайте результат в Markdown или DOCX.
+
+Так демонстрируется полный обязательный сценарий: входные публикации → персональный отбор → тематическая группировка → объяснимый дайджест → экспорт.

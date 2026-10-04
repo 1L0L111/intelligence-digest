@@ -24,7 +24,11 @@ def run_pipeline(publications: list[Publication], profile: UserProfile, limit: i
         tags=sorted(set(t for p in items for t in executive_tags(p)))
         detail=cards[0] if profile.role!='cio' else {'tags':tags}
         summary=(lead.text[:520].strip() or lead.title)
-        why=('; '.join(tags[:4]) if tags else f'Соответствует интересам роли {profile.role}')
+        if profile.role == 'cio':
+            why = ('Бизнес-сигналы: ' + '; '.join(tags[:4])) if tags else 'Соответствует стратегическим интересам руководителя'
+        else:
+            matched = ', '.join(reasons[:4])
+            why = f'Совпадает с заданными ИТ/ИБ-интересами: {matched}' if matched else 'Технически релевантно выбранному профилю'
         events.append(DigestEvent(id=str(uuid4()),title=lead.title,category=topic,summary=summary,why_it_matters=why,
             score=score,publication_ids=[p.id for p in items],sources=[p.url for p in items],reasons=reasons,details=detail))
     return sorted(events,key=lambda x:x.score,reverse=True)[:limit]
